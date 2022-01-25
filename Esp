@@ -1,0 +1,193 @@
+ESPEnabled = true
+ESPLength  = 1000000
+
+local plr = game:GetService("Players").LocalPlayer
+local char = plr.Character
+local root = char.HumanoidRootPart
+local Plrs = game:GetService("Players")
+local MyPlr = Plrs.LocalPlayer
+local MyChar = MyPlr.Character
+local CoreGui = game:GetService("CoreGui")
+local Run = game:GetService("RunService")
+
+CharAddedEvent = { }
+
+Plrs.PlayerAdded:connect(function(plr)
+   if CharAddedEvent[plr.Name] == nil then
+       CharAddedEvent[plr.Name] = plr.CharacterAdded:connect(function(char)
+           if ESPEnabled then
+               RemoveESP(plr)
+               CreateESP(plr)
+           end
+       end)
+   end
+end)
+
+Plrs.PlayerRemoving:connect(function(plr)
+   if CharAddedEvent[plr.Name] ~= nil then
+       CharAddedEvent[plr.Name]:Disconnect()
+       CharAddedEvent[plr.Name] = nil
+   end
+   RemoveESP(plr)
+end)
+
+function UpdateESP(plr)
+   local Find = CoreGui:FindFirstChild("ESP_" .. plr.Name)
+Find.Frame.Names.TextColor3 = Color3.new(0.8, 0.8, 0)
+Find.Frame.Names.TextColor3 = Color3.new(1, 1, 1)
+Find.Frame.Dist.TextColor3  = Color3.new(1, 1, 1)
+local GetChar               = plr.Character
+       if MyChar and GetChar then
+           local Find2 = MyChar:FindFirstChild("HumanoidRootPart")
+           local Find3 = GetChar:FindFirstChild("HumanoidRootPart")
+           local Find4 = GetChar:FindFirstChildOfClass("Humanoid")
+           if Find2 and Find3 then
+               local pos = Find3.Position
+               local Dist = (Find2.Position - pos).magnitude
+               if Dist > ESPLength then
+                   Find.Frame.Names.Visible = false
+                   Find.Frame.Dist.Visible = false
+                   return
+               else
+                   Find.Frame.Names.Visible = true
+                   Find.Frame.Dist.Visible = true
+               end
+               Find.Frame.Dist.Text = "Distance: " .. string.format("%.0f", Dist)  
+       end
+   end
+end
+
+function RemoveESP(plr)
+   local ESP = CoreGui:FindFirstChild("ESP_" .. plr.Name)
+   if ESP then
+       ESP:Destroy()
+   end
+end
+
+function CreateESP(plr)
+   if plr ~= nil then
+       local GetChar = plr.Character
+       if not GetChar then return end
+       local GetHead do
+           repeat wait() until GetChar:FindFirstChild("Head")
+       end
+       GetHead = GetChar.Head
+       
+       local bb = Instance.new("BillboardGui", CoreGui)
+       bb.Adornee = GetHead
+       bb.ExtentsOffset = Vector3.new(0, 1, 0)
+       bb.AlwaysOnTop = true
+       bb.Size = UDim2.new(0, 5, 0, 5)
+       bb.StudsOffset = Vector3.new(0, 3, 0)
+       bb.Name = "ESP_" .. plr.Name
+       
+       local frame = Instance.new("Frame", bb)
+       frame.ZIndex = 10
+       frame.BackgroundTransparency = 1
+       frame.Size = UDim2.new(1, 0, 1, 0)
+       
+       local TxtName = Instance.new("TextLabel", frame)
+       TxtName.Name = "Names"
+       TxtName.ZIndex = 10
+       TxtName.Text = plr.Name
+       TxtName.BackgroundTransparency = 1
+       TxtName.Position = UDim2.new(0, 0, 0, -45)
+       TxtName.Size = UDim2.new(1, 0, 10, 0)
+       TxtName.Font = "SourceSansBold"
+       TxtName.TextColor3 = Color3.new(0, 0, 0)
+       TxtName.TextSize = 14
+       TxtName.TextStrokeTransparency = 0.5
+       
+       local TxtDist = Instance.new("TextLabel", frame)
+       TxtDist.Name = "Dist"
+       TxtDist.ZIndex = 10
+       TxtDist.Text = ""
+       TxtDist.BackgroundTransparency = 1
+       TxtDist.Position = UDim2.new(0, 0, 0, -35)
+       TxtDist.Size = UDim2.new(1, 0, 10, 0)
+       TxtDist.Font = "SourceSansBold"
+       TxtDist.TextColor3 = Color3.new(0, 0, 0)
+       TxtDist.TextSize = 15
+       TxtDist.TextStrokeTransparency = 0.5
+   end
+end
+
+
+Run:BindToRenderStep("UpdateESP", Enum.RenderPriority.Character.Value, function()
+   for _, v in next, Plrs:GetPlayers() do
+       UpdateESP(v)
+   end
+end)
+
+local MainGUI = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local esptrack = Instance.new("TextButton")
+local Close = Instance.new("TextButton")
+
+MainGUI.Name = "MainGUI"
+MainGUI.Parent = game.CoreGui
+MainGUI.ResetOnSpawn = false
+local MainCORE = game.CoreGui["MainGUI"]
+
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = MainGUI
+MainFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+MainFrame.BackgroundTransparency = 0.5
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Selectable = true
+MainFrame.Draggable = true
+MainFrame.Position = UDim2.new(0, 0, 0.270916343, 0)
+MainFrame.Size = UDim2.new(0, 67, 0, 20)
+MainFrame.Visible = true
+
+esptrack.Name = "esptrack"
+esptrack.Parent = MainFrame
+esptrack.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+esptrack.BorderColor3 = Color3.new(0.6, 0.6, 0.6)
+esptrack.Position = UDim2.new(0.392578244, 0, -0.00380921364, 0)
+esptrack.Size = UDim2.new(0, 40, 0, 20)
+esptrack.TextColor3 = Color3.new(1, 1, 1)
+esptrack.Font = Enum.Font.Fantasy
+esptrack.Text = "ESP"
+esptrack.TextSize = 16
+esptrack.TextWrapped = true
+esptrack.MouseButton1Click:connect(function()
+   ESPEnabled = not ESPEnabled
+   if ESPEnabled then
+       esptrack.BackgroundColor3 = Color3.new(0, 0.5, 0)
+       for _, v in next, Plrs:GetPlayers() do
+           if v ~= MyPlr then
+               if CharAddedEvent[v.Name] == nil then
+                   CharAddedEvent[v.Name] = v.CharacterAdded:connect(function(Char)
+                       if ESPEnabled then
+                           RemoveESP(v)
+                           CreateESP(v)
+                       end
+                       repeat wait() until Char:FindFirstChild("HumanoidRootPart")
+                   end)
+               end
+               RemoveESP(v)
+               CreateESP(v)
+           end
+       end
+   else
+       esptrack.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+       for _, v in next, Plrs:GetPlayers() do
+           RemoveESP(v)
+       end
+   end
+end)
+
+Close.Name = "Close"
+Close.Parent = MainFrame
+Close.BackgroundColor3 = Color3.new(1, 0, 0)
+Close.Position = UDim2.new(-0.00261712074, 0, -0.00380919501, 0)
+Close.Size = UDim2.new(0, 27, 0, 20)
+Close.Font = Enum.Font.SourceSans
+Close.Text = "X"
+Close.TextColor3 = Color3.new(0, 0, 0)
+Close.TextSize = 20
+Close.MouseButton1Down:connect(function()
+MainGUI:Destroy()
+end)
